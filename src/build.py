@@ -8,6 +8,10 @@ src/content/pages/ の原稿（簡易Markdown）と、このファイル内の�
   public/ に直接ファイルを置かないこと。CSSなどの静的ファイルは src/assets/ に置く。
 - src/assets/ の中身は、そのまま public/assets/ にコピーする。
 - 外部ライブラリ不要。生成物は外部CDN・外部フォント・JS・解析タグを含まない静的HTML。
+- 見出しの書体は src/assets/fonts/ に置いた自前のフォント（サイトで使う文字だけに絞ったもの）。
+  文章を変えて新しい文字が増えたら、ビルド後に python3 src/subset_fonts.py を実行して作り直す
+  （fonttools と brotli が必要。無くてもサイトは表示でき、足りない文字だけ端末の書体になる）。
+- src/assets/root/ の中身（favicon.ico など）は public/ の直下にコピーする。
 """
 import html
 import math
@@ -192,32 +196,10 @@ LOGO_INNER = (
     '<circle cx="32" cy="32" r="17.5" fill="#ffe14d" stroke="#141414" stroke-width="2.5"/>'
     '<path d="M22.5 41.5V23.5l9.5 10 9.5-10v18" fill="none" stroke="#141414" stroke-width="4.5" '
     'stroke-linecap="round" stroke-linejoin="round"/>')
-LOGO = (f'<svg class="logo__mark" viewBox="0 0 64 64" width="56" height="56" aria-hidden="true" '
+LOGO = (f'<svg class="logo__mark" viewBox="0 0 64 64" width="44" height="44" aria-hidden="true" '
         f'focusable="false">{LOGO_INNER}</svg>')
 FAVICON = f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">{LOGO_INNER}</svg>\n'
 
-
-def spark(cls):
-    return (f'<svg class="deco {cls}" viewBox="0 0 40 40" width="40" height="40" aria-hidden="true" focusable="false">'
-            '<path d="M20 1c2 12 7 17 19 19-12 2-17 7-19 19-2-12-7-17-19-19C13 18 18 13 20 1z" '
-            'fill="currentColor" stroke="#141414" stroke-width="2" stroke-linejoin="round"/></svg>')
-
-
-def squiggle(cls):
-    return (f'<svg class="deco {cls}" viewBox="0 0 160 24" width="160" height="24" aria-hidden="true" focusable="false">'
-            '<path d="M3 12c10-12 20-12 30 0s20 12 30 0 20-12 30 0 20 12 30 0 20-12 30 0" fill="none" '
-            'stroke="currentColor" stroke-width="5" stroke-linecap="round"/></svg>')
-
-
-def burst_badge(l1, l2, cls="", color="#ffe14d"):
-    return (f'<svg class="burst {cls}" viewBox="0 0 140 140" width="140" height="140" aria-hidden="true" focusable="false">'
-            f'<polygon points="{burst_points(16, 68, 56, 70, 70)}" fill="{color}" stroke="#141414" '
-            'stroke-width="3" stroke-linejoin="round"/>'
-            f'<text x="70" y="70" text-anchor="middle" class="burst__l1">{l1}</text>'
-            f'<text x="70" y="96" text-anchor="middle" class="burst__l2">{l2}</text></svg>')
-
-
-DECOR = spark("deco--a") + spark("deco--b") + squiggle("deco--c")
 
 # 事業ごとのアイコン（装飾。viewBox 0 0 64 64）
 ICONS = {
@@ -259,7 +241,7 @@ SERVICES = [
   <p class="svc__note-title"><span class="pr-badge">PR</span>広告の表示について</p>
   <p>広告を含む投稿やページには、「PR」「広告」など、広告であることが分かる表示を行います。報酬の有無や金額によって、紹介する内容の評価を変えることはありません。詳しくは<a href="disclaimer.html#ad">広告掲載について</a>をご覧ください。</p>
 </div>"""),
-    dict(id="ai", num="02", en="GENERATIVE AI", color="cyan", name="生成AIを活用したコンテンツ制作",
+    dict(id="ai", num="02", en="GENERATIVE AI", color="yellow", name="生成AIを活用したコンテンツ制作",
          card="生成AIを活用して、コンテンツを企画・制作します。公開する前には、人の目で内容を確認します。",
          body="""<p class="svc__lead">生成AIを活用して、コンテンツの企画・制作を行っています。</p>
 <p>アイデア出しや構成づくり、下書きなど、制作のさまざまな工程で生成AIを活用しています。AIが出力したものをそのまま公開することはせず、人が内容を確認し、手を加えたうえで公開します。</p>
@@ -269,7 +251,7 @@ SERVICES = [
   <li><strong>権利への配慮</strong>：他者の著作物・商標・肖像などの権利を侵害しないよう注意します。</li>
   <li><strong>表現の確認</strong>：誤解を招く表現や、実際よりよく見せる表現になっていないかを確認します。</li>
 </ul>"""),
-    dict(id="youtube", num="03", en="YOUTUBE", color="lime", name="YouTubeチャンネル運営",
+    dict(id="youtube", num="03", en="YOUTUBE", color="cyan", name="YouTubeチャンネル運営",
          card="勉強用BGMチャンネル「ポモドーロ書斎」（@pomodoro.shosai）を、自社で運営しています。",
          body=f"""<p class="svc__lead">自社で、YouTubeの勉強用BGMチャンネル「ポモドーロ書斎」を運営しています。</p>
 <div class="channel">
@@ -296,7 +278,7 @@ PAGES = [
          title=f"プライバシーポリシー｜{CORP}",
          desc=f"{CORP}のプライバシーポリシーです。Webサイト（mogamii.com）や、SNS・YouTube・Webメディアなどでの情報発信における、個人情報やCookieなどの取り扱いについて定めています。",
          lead="当社のWebサイトや、SNS・YouTube・Webメディアなどでの情報発信における、個人情報やCookieなどの取り扱いについて定めています。"),
-    dict(file="disclaimer.html", src="disclaimer.md", h1="広告掲載について・免責事項", en="DISCLAIMER", color="lime",
+    dict(file="disclaimer.html", src="disclaimer.md", h1="広告掲載について・免責事項", en="DISCLAIMER", color="plain",
          title=f"広告掲載について・免責事項｜{CORP}",
          desc=f"{CORP}の広告掲載の方針（アフィリエイトプログラムへの参加、ステルスマーケティング規制への対応）と、掲載情報・リンク・著作権についての免責事項です。",
          lead="広告掲載の方針と、掲載情報・リンク・著作権についての考え方をまとめています。"),
@@ -310,8 +292,6 @@ NAV = [("home", "index.html", "トップ"), ("services", "services.html", "事�
        ("company", "company.html", "会社概要"), ("contact", "contact.html", "お問い合わせ")]
 MARQUEE_TOP = ["WEB MEDIA", "Webメディア", "SNS", "情報発信", "GENERATIVE AI", "生成AIでつくる",
                "YOUTUBE", "ポモドーロ書斎", "MOGAMII", "つくる・とどける・つづける"]
-MARQUEE_FOOT = ["THANKS FOR VISITING", "ご覧いただき、ありがとうございます", "MOGAMII", "YOKOHAMA, KANAGAWA",
-                "WEB MEDIA × SNS × AI × YOUTUBE", "お問い合わせはメールで"]
 
 
 # ---------------------------------------------------------------- 共通パーツ
@@ -331,17 +311,25 @@ def head(title, desc, path, p, extra=""):
 <meta property="og:description" content="{E(desc)}">
 <meta property="og:url" content="{canon}">
 <meta property="og:locale" content="ja_JP">
-<meta name="twitter:card" content="summary">
-<meta name="theme-color" content="#ff2e88">
-{extra}<link rel="icon" href="{p}favicon.svg" type="image/svg+xml">
+<meta property="og:image" content="{SITE}/assets/ogp.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#fbf4e4">
+{extra}<link rel="icon" href="{p}favicon.ico" sizes="32x32">
+<link rel="icon" href="{p}favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="{p}apple-touch-icon.png">
+<link rel="preload" href="{p}assets/fonts/zen-kaku-gothic-new-900.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{p}assets/style.css">
 </head>"""
 
 
-def marquee(items, mod=""):
-    seq = "".join(f'<span class="marquee__item">{t}</span><span class="marquee__sep">★</span>'
-                  for t in items * 2)
-    return (f'<div class="marquee {mod}" aria-hidden="true"><div class="marquee__track">'
+def marquee(items):
+    def cls(t):
+        return "marquee__item" if t.isascii() else "marquee__item marquee__item--ja"
+
+    seq = "".join(f'<span class="{cls(t)}">{t}</span><span class="marquee__sep">★</span>' for t in items * 2)
+    return (f'<div class="marquee" aria-hidden="true"><div class="marquee__track">'
             f'<div class="marquee__group">{seq}</div><div class="marquee__group">{seq}</div></div></div>')
 
 
@@ -354,20 +342,19 @@ def header(p, current):
     lis = []
     for key, href, label in NAV:
         cur = ' aria-current="page"' if key == current else ""
-        lis.append(f'<li><a href="{p}{href}"{cur}>{label}</a></li>')
+        cls = {"home": ' class="gnav__home"', "contact": ' class="gnav__cta"'}.get(key, "")
+        lis.append(f'<li{cls}><a href="{p}{href}"{cur}>{label}</a></li>')
     return f"""<div class="adbar"><p>{AD_NOTICE}<a href="{p}disclaimer.html#ad">広告掲載について</a></p></div>
 <header class="site-header">
   <div class="container site-header__inner">
     {logo(p)}
     <nav class="gnav" aria-label="メインメニュー"><ul>{"".join(lis)}</ul></nav>
   </div>
-  {marquee(MARQUEE_TOP)}
 </header>"""
 
 
 def footer(p):
     return f"""<footer class="site-footer">
-  {marquee(MARQUEE_FOOT, "marquee--rev")}
   <div class="container footer-grid">
     <div class="footer-brand">
       {logo(p, "logo--footer")}
@@ -401,13 +388,11 @@ def footer(p):
 
 
 def doc(head_html, p, current, main_html):
-    main_html = re.sub(r'(<span class="section-title__en">[^<]*</span>)([^<]+)</h2>',
-                       r'\1<span class="section-title__ja">\2</span></h2>', main_html)
     return f"""{head_html}
 <body>
 <a class="skip-link" href="#main">本文へスキップ</a>
 {header(p, current)}
-<main id="main" class="main">
+<main id="main">
 {main_html}
 </main>
 {footer(p)}
@@ -430,79 +415,118 @@ def page_hero(color, crumbs, en, h1, lead):
     <h1 class="page-hero__title">{h1}</h1>
     <p class="page-hero__lead">{lead}</p>
   </div>
-  {DECOR}
 </header>"""
+
+
+def section_head(en, title, hid, lead=""):
+    lead_html = f'\n      <p class="lead">{lead}</p>' if lead else ""
+    return f"""<div class="section-head">
+      <p class="eyebrow" aria-hidden="true">{en}</p>
+      <h2 class="section-title" id="{hid}">{title}</h2>{lead_html}
+    </div>"""
 
 
 def cta_section():
     return f"""<section class="section section--cta" aria-labelledby="cta-title">
   <div class="container">
     <div class="cta-box">
-      <h2 class="section-title" id="cta-title"><span class="section-title__en">CONTACT</span>お問い合わせ</h2>
-      <p class="cta-box__text">{CORP}へのお問い合わせは、メールで受け付けています。お問い合わせの前に、<a href="contact.html">お問い合わせページ</a>のご案内もご覧ください。</p>
-      <p class="cta-box__mail"><a class="btn btn--yellow btn--lg" href="mailto:{EMAIL}"><span class="btn__label" aria-hidden="true">MAIL</span>{EMAIL_WBR}</a></p>
-      {burst_badge("MAIL", "メールで", "cta-box__burst", "#b8f400")}
+      <div>
+        <p class="eyebrow" aria-hidden="true">CONTACT</p>
+        <h2 class="section-title" id="cta-title">お問い合わせ</h2>
+        <p class="cta-box__text">{CORP}へのお問い合わせは、メールで受け付けています。お問い合わせの前に、<a href="contact.html">お問い合わせページ</a>のご案内もご覧ください。</p>
+      </div>
+      <p><a class="btn btn--mail" href="mailto:{EMAIL}">{EMAIL_WBR}</a></p>
     </div>
   </div>
 </section>"""
 
 
+def stance_section():
+    lis = "".join(f"<li><h3>{t}</h3><p>{d}</p></li>" for t, d in STANCE)
+    return f"""<section class="section" aria-labelledby="stance-title">
+  <div class="container">
+    {section_head("OUR STANCE", "3つの事業に共通する考え方", "stance-title")}
+    <ol class="stance">{lis}</ol>
+  </div>
+</section>"""
+
+
+EQ_BARS = [38, 62, 48, 80, 56, 92, 70, 44, 84, 60, 96, 52, 74, 40, 66, 88, 50, 72, 36, 58]
+ARROW = '<span class="btn__arrow" aria-hidden="true">→</span>'
+
+
 # ---------------------------------------------------------------- ページ本体
 def index_main():
     biz = "".join(f"""<li class="cat cat--{s["color"]}">
-  <p class="cat__num" aria-hidden="true">{s["num"]}</p>
-  {icon(s["id"], "cat__icon")}
-  <p class="cat__en" aria-hidden="true">{s["en"]}</p>
-  <h3 class="cat__name"><a href="services.html#{s["id"]}">{s["name"]}</a></h3>
-  <p class="cat__desc">{s["card"]}</p>
-  <p class="cat__more" aria-hidden="true">くわしく見る →</p>
-</li>""" for s in SERVICES)
+        <div class="cat__top">{icon(s["id"], "cat__icon")}<p class="cat__num" aria-hidden="true">{s["num"]}</p></div>
+        <p class="cat__en" aria-hidden="true">{E(s["en"])}</p>
+        <h3 class="cat__name"><a href="services.html#{s["id"]}">{s["name"]}</a></h3>
+        <p class="cat__desc">{s["card"]}</p>
+        <p class="cat__more" aria-hidden="true">くわしく見る <span>→</span></p>
+      </li>""" for s in SERVICES)
+    bars = "".join(f'<span style="--h:{h}%;--d:-{(k * 0.37) % 1.8:.2f}s"></span>' for k, h in enumerate(EQ_BARS))
+    star = (f'<svg class="poster__star" viewBox="0 0 200 200" focusable="false">'
+            f'<polygon class="poster__burst" points="{burst_points(24, 96, 82, 100, 100)}" fill="#ff2e88" '
+            'stroke="#15130f" stroke-width="3" stroke-linejoin="round"/>'
+            '<circle cx="100" cy="100" r="56" fill="#fff" stroke="#15130f" stroke-width="3"/>'
+            '<path d="M71 129V73l29 31 29-31v56" fill="none" stroke="#15130f" stroke-width="13" '
+            'stroke-linecap="round" stroke-linejoin="round"/></svg>')
     return f"""<section class="hero" aria-labelledby="hero-title">
   <div class="container hero__inner">
     <div class="hero__copy">
-      <p class="hero__kicker"><span>WEB MEDIA</span><span>SNS</span><span>GENERATIVE AI</span><span>YOUTUBE</span></p>
-      <h1 class="hero__title" id="hero-title"><span class="hero__name"><span class="hero__name-en">Mogamii</span>合同会社</span><span class="ht ht--1">つくる。</span><span class="ht ht--2"><span class="ht-outline">とどける。</span></span><span class="ht ht--3">つづける。</span></h1>
-      <p class="hero__sub">SNS・Webメディアでの情報発信、生成AIを活用したコンテンツ制作、YouTubeチャンネルの運営を行う会社です。</p>
-      <p class="hero__lead">{CORP}は、{COMPANY["area"]}の会社です。2024年8月に設立しました。SNSでの情報発信とWebメディアの運営、生成AIを活用したコンテンツ制作、そして自社のYouTube勉強用BGMチャンネル「ポモドーロ書斎」の運営に取り組んでいます。</p>
+      <h1 class="hero__title" id="hero-title"><span class="hero__name">{CORP}</span><span class="hero__line">つくる。</span><span class="hero__line"><span class="hero__mark">とどける。</span></span><span class="hero__line">つづける。</span></h1>
+      <p class="hero__lead">SNS・Webメディアでの情報発信、生成AIを活用したコンテンツ制作、YouTubeチャンネルの運営を行う、{COMPANY["area"]}の会社です。2024年8月に設立しました。</p>
       <ul class="hero__actions">
-        <li><a class="btn btn--pink" href="services.html">事業内容を見る<span aria-hidden="true"> →</span></a></li>
-        <li><a class="btn" href="company.html">会社概要を見る<span aria-hidden="true"> →</span></a></li>
+        <li><a class="btn btn--pink" href="services.html">事業内容を見る{ARROW}</a></li>
+        <li><a class="btn" href="company.html">会社概要を見る{ARROW}</a></li>
       </ul>
     </div>
     <div class="hero__art" aria-hidden="true">
-      <div class="collage">
-        <span class="chip chip--1">SNS</span>
-        <span class="chip chip--2">Webメディア</span>
-        <span class="chip chip--3">AI</span>
-        <span class="chip chip--4">コンテンツ制作</span>
-        <span class="chip chip--5">YOUTUBE</span>
-        <span class="chip chip--6">♪</span>
-        {burst_badge("2024", "設立", "collage__burst")}
-        <p class="hero__vertical">横浜から、コンテンツを。</p>
+      <div class="poster">
+        <span class="poster__tag poster__tag--tl">EST. 2024</span>
+        <span class="poster__tag poster__tag--tr">YOKOHAMA</span>
+        {star}
+        <ul class="poster__chips"><li>Webメディア・SNS</li><li>生成AI</li><li>YouTube</li></ul>
       </div>
     </div>
   </div>
-  {DECOR}
 </section>
+{marquee(MARQUEE_TOP)}
 <section class="section" aria-labelledby="biz-title">
   <div class="container">
-    <h2 class="section-title" id="biz-title"><span class="section-title__en">BUSINESS</span>事業内容</h2>
-    <p class="section-lead">3つの事業で、コンテンツをつくり、とどけています。</p>
-    <ul class="cats">{biz}</ul>
-    <p class="more"><a class="more-link" href="services.html">事業内容をくわしく見る<span aria-hidden="true"> →</span></a></p>
+    {section_head("BUSINESS", "事業内容", "biz-title", "3つの事業で、コンテンツをつくり、とどけています。")}
+    <ul class="cats">
+      {biz}
+    </ul>
   </div>
 </section>
-<section class="section section--stripe section--owner" aria-labelledby="owner-title">
-  <div class="container">
-    <div class="owner-box">
-      <h2 class="section-title" id="owner-title"><span class="section-title__en">COMPANY</span>会社概要</h2>
-      <p>{CORP}の基本情報です。事業内容やお問い合わせ先などは、会社概要のページに掲載しています。</p>
-      <dl class="owner-facts">
+<section class="section feature" aria-labelledby="ch-title">
+  <div class="container feature__inner">
+    <div>
+      <p class="eyebrow" aria-hidden="true">OUR CHANNEL</p>
+      <h2 class="section-title" id="ch-title">ポモドーロ書斎</h2>
+      <p class="feature__handle">@pomodoro.shosai</p>
+      <p class="feature__desc">勉強の時間に流せる、勉強用BGMを公開しているYouTubeチャンネルです。自社で運営しています。</p>
+      <p><a class="btn btn--yellow" href="{YOUTUBE}" target="_blank" rel="noopener">YouTubeでチャンネルを見る<span class="sr-only">（新しいタブで開きます）</span><span class="btn__arrow" aria-hidden="true">↗</span></a></p>
+    </div>
+    <div class="player" aria-hidden="true">
+      <div class="player__screen">{bars}</div>
+      <div class="player__meta"><span class="player__icon">♪</span><div><p class="player__name">ポモドーロ書斎</p><p class="player__sub">STUDY BGM / YOUTUBE</p></div></div>
+      <div class="player__bar"></div>
+    </div>
+  </div>
+</section>
+{stance_section()}
+<section class="section company" aria-labelledby="co-title">
+  <div class="container company__inner">
+    {section_head("COMPANY", "会社概要", "co-title")}
+    <div>
+      <dl class="facts">
         <div><dt>会社名</dt><dd>{CORP}</dd></div>
         <div><dt>設立</dt><dd><time datetime="{COMPANY["founded_iso"]}">{COMPANY["founded"]}</time></dd></div>
         <div><dt>所在地</dt><dd>{COMPANY["area"]}</dd></div>
       </dl>
-      <p class="owner-cta"><a class="btn btn--yellow" href="company.html">会社概要を見る<span aria-hidden="true"> →</span></a></p>
+      <p class="company__cta"><a class="text-link" href="company.html">会社概要を見る<span aria-hidden="true"> →</span></a></p>
     </div>
   </div>
 </section>
@@ -523,8 +547,6 @@ def services_main():
 {s["body"]}
   </div>
 </section>""" for s in SERVICES)
-    pol = "".join(f'<li class="policy-item"><p class="policy-item__title">{t}</p><p>{d}</p></li>'
-                  for t, d in STANCE)
     hero = page_hero("pink", [("index.html", "トップ"), (None, "事業内容")], "SERVICES", "事業内容",
                      f"{CORP}は、次の3つの事業を行っています。")
     return f"""{hero}
@@ -532,12 +554,7 @@ def services_main():
 <div class="container svc-list">
 {secs}
 </div>
-<section class="section section--stripe" aria-labelledby="stance-title">
-  <div class="container">
-    <h2 class="section-title" id="stance-title"><span class="section-title__en">OUR STANCE</span>3つの事業に共通する考え方</h2>
-    <ol class="policy-list">{pol}</ol>
-  </div>
-</section>
+{stance_section()}
 {cta_section()}"""
 
 
@@ -568,7 +585,7 @@ def company_main():
   <li><a class="sticker sticker--pink" href="services.html">事業内容</a></li>
   <li><a class="sticker sticker--yellow" href="contact.html">お問い合わせ</a></li>
   <li><a class="sticker sticker--cyan" href="privacy.html">プライバシーポリシー</a></li>
-  <li><a class="sticker sticker--lime" href="disclaimer.html">広告掲載について・免責事項</a></li>
+  <li><a class="sticker" href="disclaimer.html">広告掲載について・免責事項</a></li>
 </ul>
 </div></div>
 {cta_section()}"""
@@ -584,10 +601,9 @@ def notfound_main():
       <li><a class="sticker sticker--yellow" href="/index.html">トップページへ</a></li>
       <li><a class="sticker sticker--pink" href="/services.html">事業内容</a></li>
       <li><a class="sticker sticker--cyan" href="/company.html">会社概要</a></li>
-      <li><a class="sticker sticker--lime" href="/contact.html">お問い合わせ</a></li>
+      <li><a class="sticker" href="/contact.html">お問い合わせ</a></li>
     </ul>
   </div>
-  """ + DECOR + """
 </section>"""
 
 
@@ -600,13 +616,32 @@ def clean_out():
         shutil.rmtree(OUT)
     OUT.mkdir()
     if ASSETS.is_dir():
-        shutil.copytree(ASSETS, OUT / "assets")
+        shutil.copytree(ASSETS, OUT / "assets", ignore=shutil.ignore_patterns("root"))
+        for f in sorted((ASSETS / "root").glob("*")):  # favicon.ico など、サイト直下に置くファイル
+            if f.is_file():
+                shutil.copy2(f, OUT / f.name)
 
 
 def write(rel, text):
     path = OUT / rel
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
+
+
+def font_coverage_note():
+    """見出し用フォントに入っていない文字があれば知らせる（表示はできるので、止めはしない）。"""
+    chars_file = ROOT / "src" / "fonts" / "chars.txt"
+    if not chars_file.is_file():
+        print("注意: src/fonts/chars.txt がありません。python3 src/subset_fonts.py を実行してください。")
+        return
+    have = set(chars_file.read_text(encoding="utf-8"))
+    used = set()
+    for f in OUT.glob("*.html"):
+        used |= set(re.sub(r"<[^>]+>", "", f.read_text(encoding="utf-8")))
+    missing = sorted(c for c in used - have if not c.isspace())
+    if missing:
+        print(f"注意: 見出し用フォントに無い文字が {len(missing)} 個あります: {''.join(missing)}")
+        print("      python3 src/subset_fonts.py を実行して、フォントを作り直してください。")
 
 
 def main():
@@ -635,6 +670,7 @@ def main():
     items = "".join(f"  <url>\n    <loc>{SITE}/{u}</loc>\n    <lastmod>{TODAY}</lastmod>\n  </url>\n" for u in urls)
     write("sitemap.xml", '<?xml version="1.0" encoding="UTF-8"?>\n'
           f'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n{items}</urlset>\n')
+    font_coverage_note()
     print("生成したファイル:")
     for f in sorted(OUT.rglob("*")):
         if f.is_file():
