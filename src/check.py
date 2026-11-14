@@ -19,7 +19,7 @@ from html.parser import HTMLParser
 from urllib.parse import urlsplit, unquote
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent / "public"
-SITE = "https://mogamii.com/"
+SITE = "http://mogamii.com/"  # build.py の SITE と合わせる（2026-11-14 長坂の指定）
 EMAIL = "info@mogamii.com"
 AREA = "神奈川県横浜市"
 ALLOWED_EXTERNAL = {"https://www.youtube.com/@pomodoro.shosai"}
@@ -200,7 +200,11 @@ def check_page(p, s, errors):
         errors.append(f"{rel}: コピーライト表記がない")
     # ---- 共通メニュー
     for page in PAGES:
-        if not re.search(r'href="[^"]*' + re.escape(page) + r'(?:#[^"]*)?"', text):
+        if page == "index.html":  # トップへは index.html を付けずに ./ か / でリンクする
+            found = re.search(r'href="(?:\./|/)"', text)
+        else:
+            found = re.search(r'href="[^"]*' + re.escape(page) + r'(?:#[^"]*)?"', text)
+        if not found:
             errors.append(f"{rel}: {page} へのリンクがない")
     # ---- 所在地は「神奈川県横浜市」まで、連絡先は指定のメールアドレスだけ
     for v in re.findall(r"所在地</(?:dt|th)>\s*<(?:dd|td)>(.*?)</(?:dd|td)>", text, re.S):

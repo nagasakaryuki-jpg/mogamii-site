@@ -23,7 +23,9 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC = ROOT / "src" / "content"
 ASSETS = ROOT / "src" / "assets"
 OUT = ROOT / "public"
-SITE = "https://mogamii.com"
+# トップページのURLは http://mogamii.com/ （2026-11-14 長坂の指定）。
+# https の証明書が発行され、https に切り替えると決めたら、ここと check.py の SITE を直す。
+SITE = "http://mogamii.com"
 TODAY = "2026-11-13"
 EMAIL = "info@mogamii.com"
 EMAIL_WBR = EMAIL.replace("@", "@<wbr>")
@@ -288,7 +290,7 @@ PAGES = [
          lead="当社へのお問い合わせは、メールで受け付けています。"),
 ]
 
-NAV = [("home", "index.html", "トップ"), ("services", "services.html", "事業内容"),
+NAV = [("home", "", "トップ"), ("services", "services.html", "事業内容"),
        ("company", "company.html", "会社概要"), ("contact", "contact.html", "お問い合わせ")]
 MARQUEE_TOP = ["WEB MEDIA", "Webメディア", "SNS", "情報発信", "GENERATIVE AI", "生成AIでつくる",
                "YOUTUBE", "ポモドーロ書斎", "MOGAMII", "つくる・とどける・つづける"]
@@ -324,6 +326,11 @@ def head(title, desc, path, p, extra=""):
 </head>"""
 
 
+def home(p):
+    """トップページへのリンク先。URLに index.html を出さない（/ で開く）。"""
+    return p or "./"
+
+
 def marquee(items):
     def cls(t):
         return "marquee__item" if t.isascii() else "marquee__item marquee__item--ja"
@@ -334,7 +341,7 @@ def marquee(items):
 
 
 def logo(p, mod=""):
-    return (f'<a class="logo {mod}" href="{p}index.html">{LOGO}<span class="logo__text">'
+    return (f'<a class="logo {mod}" href="{home(p)}">{LOGO}<span class="logo__text">'
             f'<span class="logo__word">Mogamii</span><span class="logo__tag">合同会社</span></span></a>')
 
 
@@ -343,7 +350,7 @@ def header(p, current):
     for key, href, label in NAV:
         cur = ' aria-current="page"' if key == current else ""
         cls = {"home": ' class="gnav__home"', "contact": ' class="gnav__cta"'}.get(key, "")
-        lis.append(f'<li{cls}><a href="{p}{href}"{cur}>{label}</a></li>')
+        lis.append(f'<li{cls}><a href="{home(p) if key == "home" else p + href}"{cur}>{label}</a></li>')
     return f"""<div class="adbar"><p>{AD_NOTICE}<a href="{p}disclaimer.html#ad">広告掲載について</a></p></div>
 <header class="site-header">
   <div class="container site-header__inner">
@@ -363,7 +370,7 @@ def footer(p):
     <nav class="footer-nav" aria-label="フッターメニュー">
       <p class="footer-h">MENU</p>
       <ul>
-        <li><a href="{p}index.html">トップ</a></li>
+        <li><a href="{home(p)}">トップ</a></li>
         <li><a href="{p}services.html">事業内容</a></li>
         <li><a href="{p}company.html">会社概要</a></li>
         <li><a href="{p}contact.html">お問い合わせ</a></li>
@@ -547,7 +554,7 @@ def services_main():
 {s["body"]}
   </div>
 </section>""" for s in SERVICES)
-    hero = page_hero("pink", [("index.html", "トップ"), (None, "事業内容")], "SERVICES", "事業内容",
+    hero = page_hero("pink", [("./", "トップ"), (None, "事業内容")], "SERVICES", "事業内容",
                      f"{CORP}は、次の3つの事業を行っています。")
     return f"""{hero}
 <nav class="jump container" aria-label="このページの事業一覧"><ul>{jump}</ul></nav>
@@ -571,7 +578,7 @@ def company_main():
         ("URL", COMPANY["url"]),
     ]
     trs = "".join(f'<tr><th scope="row">{k}</th><td>{v}</td></tr>' for k, v in rows)
-    hero = page_hero("yellow", [("index.html", "トップ"), (None, "会社概要")], "COMPANY", "会社概要",
+    hero = page_hero("yellow", [("./", "トップ"), (None, "会社概要")], "COMPANY", "会社概要",
                      f"{CORP}の会社情報です。")
     return f"""{hero}
 <div class="page-body"><div class="prose">
@@ -598,7 +605,7 @@ def notfound_main():
     <h1 class="notfound__title">ページが見つかりませんでした</h1>
     <p>お探しのページは、移動または削除された可能性があります。URLに誤りがないかご確認ください。</p>
     <ul class="notfound__links">
-      <li><a class="sticker sticker--yellow" href="/index.html">トップページへ</a></li>
+      <li><a class="sticker sticker--yellow" href="/">トップページへ</a></li>
       <li><a class="sticker sticker--pink" href="/services.html">事業内容</a></li>
       <li><a class="sticker sticker--cyan" href="/company.html">会社概要</a></li>
       <li><a class="sticker" href="/contact.html">お問い合わせ</a></li>
@@ -657,7 +664,7 @@ def main():
                                    "company.html", ""), "", "company", company_main()))
     for pg in PAGES:
         body = add_ids(md((SRC / "pages" / pg["src"]).read_text(encoding="utf-8")))
-        hero = page_hero(pg["color"], [("index.html", "トップ"), (None, pg["h1"])], pg["en"], pg["h1"], pg["lead"])
+        hero = page_hero(pg["color"], [("./", "トップ"), (None, pg["h1"])], pg["en"], pg["h1"], pg["lead"])
         main_html = f'{hero}\n<div class="page-body"><div class="prose">\n{body}\n</div></div>'
         write(pg["file"], doc(head(pg["title"], pg["desc"], pg["file"], ""), "", pg["file"][:-5], main_html))
     write("404.html", doc(head(f"ページが見つかりませんでした｜{CORP}",
