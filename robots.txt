@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://mogamii.com/sitemap.xml
+Sitemap: http://mogamii.com/sitemap.xml
